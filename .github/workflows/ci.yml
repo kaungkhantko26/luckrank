@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile Python
+        run: python -m py_compile decision_support.py test_decision_support.py web_app.py
+
+      - name: Run tests
+        run: python -m unittest
+
+      - name: Secret scan
+        run: |
+          ! grep -RInE 'sk-or-[A-Za-z0-9_-]+|sk-[A-Za-z0-9_-]+|Bearer [A-Za-z0-9]|password=|secret=|token=' \
+            --exclude-dir=.git \
+            --exclude-dir=__pycache__ \
+            --exclude=.env \
+            .
+

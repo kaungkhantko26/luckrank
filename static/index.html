@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Decision Support</title>
+    <link rel="stylesheet" href="/styles.css?v=4" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="workspace" aria-label="Decision support chat">
+        <div class="masthead">
+          <div>
+            <p class="eyebrow">Personal strategy builder</p>
+            <h1>Decision Support</h1>
+          </div>
+          <div class="stud-strip" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div id="chat" class="chat-log" aria-live="polite">
+          <article class="message assistant">
+            <div class="message-meta">Advisor</div>
+            <p>What problem are you trying to solve?</p>
+          </article>
+        </div>
+
+        <form id="problem-form" class="composer">
+          <textarea
+            id="problem"
+            name="problem"
+            rows="3"
+            placeholder="Example: I need to choose the best way to improve my study results with limited time."
+            aria-label="Problem"
+            required
+          ></textarea>
+          <button id="submit-button" type="submit">
+            <span>Analyze</span>
+            <span class="button-studs" aria-hidden="true"></span>
+          </button>
+        </form>
+      </section>
+    </main>
+
+    <template id="user-message-template">
+      <article class="message user">
+        <div class="message-meta">You</div>
+        <p></p>
+      </article>
+    </template>
+
+    <template id="report-template">
+      <article class="message assistant report">
+        <div class="message-meta">Advisor</div>
+        <div class="best-block">
+          <p class="label">Understood</p>
+          <p class="understanding"></p>
+          <p class="data-note"></p>
+          <ul class="assumptions"></ul>
+          <p class="label">Best route</p>
+          <h2></h2>
+          <div class="metrics"></div>
+          <p class="reason"></p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Route</th>
+                <th>Success</th>
+                <th>Reward</th>
+                <th>Cost</th>
+                <th>Time</th>
+                <th>Risk</th>
+                <th>Do</th>
+                <th>Show</th>
+                <th>Luck</th>
+                <th>Score</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="plan">
+          <p class="label">Action plan</p>
+          <ol></ol>
+        </div>
+      </article>
+    </template>
+
+    <script src="/app.js?v=4"></script>
+  </body>
+</html>
