@@ -13,6 +13,89 @@ function formatNumber(value, digits = 1) {
   return Number(value).toFixed(digits);
 }
 
+function trimWords(value, maxWords) {
+  const words = String(value).trim().split(/\s+/).filter(Boolean);
+  if (words.length <= maxWords) return words.join(" ");
+  return `${words.slice(0, maxWords).join(" ").replace(/[.,]$/, "")}...`;
+}
+
+function routeScore(route) {
+  const safe = (value) => Math.max(Number(value), 0.01);
+  return (route.adjusted_probability * safe(route.reward)) / (safe(route.cost) * safe(route.time) * safe(route.risk));
+}
+
+function makeRoute(name, probability, reward, cost, time, risk, doValue, show, reason, actionPlan) {
+  const luck = doValue + show;
+  const adjusted_probability = Math.min(probability * (1 + Math.min(Math.max(luck, 0), 20) / 100), 0.95);
+  const route = {
+    name,
+    probability,
+    adjusted_probability,
+    reward,
+    cost,
+    time,
+    risk,
+    do: doValue,
+    show,
+    luck,
+    reason,
+    action_plan: actionPlan,
+  };
+  route.score = routeScore(route);
+  return route;
+}
+
+function localAnalyze(problem) {
+  const shortProblem = trimWords(problem, 8) || "your problem";
+  const routes = [
+    makeRoute(
+      "Quick practical plan",
+      0.68,
+      7,
+      2,
+      2,
+      3,
+      8,
+      4,
+      `Fastest low-cost way to act on ${shortProblem}.`,
+      ["Define one clear target", "Do the next small task"],
+    ),
+    makeRoute(
+      "Ask expert help",
+      0.62,
+      8,
+      4,
+      3,
+      2,
+      5,
+      5,
+      "Outside feedback reduces mistakes and improves direction.",
+      ["Ask one qualified person", "Apply the best feedback"],
+    ),
+    makeRoute(
+      "Test small version",
+      0.58,
+      9,
+      3,
+      4,
+      4,
+      7,
+      7,
+      "A small test gives evidence before bigger effort.",
+      ["Run one small experiment", "Keep what works"],
+    ),
+  ].sort((left, right) => right.score - left.score);
+
+  return {
+    problem,
+    understanding: `You want the best practical route for: ${trimWords(problem, 12)}.`,
+    data_note: "User input is real; scores are rule-based estimates.",
+    assumptions: ["Limited facts provided", "Lower cost and time are preferred"],
+    routes,
+    best_route: routes[0],
+  };
+}
+
 function submitProblem() {
   form.requestSubmit();
 }
@@ -118,23 +201,24 @@ form.addEventListener("submit", async (event) => {
   const status = addStatusMessage("Thinking...");
 
   try {
-    const response = await fetch("/api/analyze", {
+    const response = await fetch("api/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ problem }),
     });
-    const data = await response.json();
+    const contentType = response.headers.get("Content-Type") || "";
+    const data = contentType.includes("application/json") ? await response.json() : null;
     status.remove();
 
     if (!response.ok) {
-      addStatusMessage(data.error || "The analysis failed.");
+      addReport(localAnalyze(problem));
       return;
     }
 
     addReport(data);
   } catch (error) {
     status.remove();
-    addStatusMessage(error.message);
+    addReport(localAnalyze(problem));
   } finally {
     submitButton.disabled = false;
     submitButton.querySelector("span").textContent = "Analyze";
